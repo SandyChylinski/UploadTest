@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    depends_on:
+      - frontend
+      - api
+    links:
+      - frontend
+      - api
+
+##Load Balancing: NGINX can act as a reverse proxy and distribute incoming requests among multiple instances of the Frontend and API services. 
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - api
+
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - 5001:5001
+    volumes:
+      - ./api:/app
+    depends_on:
+      - db
+    links:
+      - db
+
+  db:
+    image: postgres:15.3-alpine3.18
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
